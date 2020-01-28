@@ -1,5 +1,7 @@
 This is a file
 Test //This is a test
 //Weeeeee
-Weeeeeeeee
+Weeeeeeeee /*This is a single line multiline comment*/
+reee /*This is a multiline
+comment for comment stuffs */
 This is a test file
