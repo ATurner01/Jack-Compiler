@@ -9,7 +9,7 @@ import java.util.List;
  *
  * @author Adam Turner
  */
-class FileParser {
+public class FileParser {
 
   private List<String> rawData;
   private List<String> lines;
