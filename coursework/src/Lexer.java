@@ -97,11 +97,21 @@ public class Lexer {
   }
 
   /**
-   * Returns the current state of the tokens field.
-   * @return tokens
+   * Returns the value of the next token in the token stream, then removes
+   * said token from the stream itself.
+   * @return token
    */
-  public List<Token> getTokens() {
-    return tokens;
+  public Token getNextToken() {
+    return new Token("Temp", "Temp Implementation");
+  }
+
+  /**
+   * Returns the next token in the token stream without removing the token
+   * from the stream itself.
+   * @return token
+   */
+  public Token peekNextToken() {
+    return new Token("Temp", "Temp Implementation");
   }
 
   /**

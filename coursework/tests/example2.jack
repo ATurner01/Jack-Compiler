@@ -1,0 +1,21 @@
+class Main {
+
+    /** Sums up 1 + 2 + 3 + ... + m */
+    function int sum (int n) {
+        var int sum, i;
+        let i = 1;
+        while (~(i > n)) {
+            let sum = sum + i;
+            let i = i + 1;
+        }
+        return sum;
+    }
+
+    function void main () {
+        var int n;
+        let n = Keyboard.readInt("Enter n: ");
+        do Output.printString("The result is: ");
+        do Output.printInt(sum(n));
+        return;
+    }
+}

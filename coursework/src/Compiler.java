@@ -4,12 +4,16 @@ import java.util.List;
 public class Compiler {
 
   public static void main(String[] args){
-    System.out.println("Hello World!!!");
+
+    if (args.length != 1){
+      System.err.println("Error. Input file required.");
+      System.exit(1);
+    }
 
     Lexer input = new Lexer();
 
     try {
-      input.parseData("tests/test_data.txt");
+      input.parseData(args[0]);
     }
     catch (FileNotFoundException e){
       e.printStackTrace();
