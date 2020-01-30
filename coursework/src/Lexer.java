@@ -5,21 +5,79 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * A simple class to represent a token.
+ *
+ * @author Adam Turner
+ */
+class Token{
+
+  private String lexeme;
+  private String type;
+
+  /**
+   * Creates a new token object with the provided lexeme and token name/type
+   * @param l the value of the lexeme (also called the token value/expression)
+   * @param t the type of the token (e.g. identifier, operator, keyword, etc.)
+   */
+  public Token(String l, String t){
+    lexeme = l;
+    type = t;
+  }
+
+  /**
+   * Returns the current value of the lexeme field.
+   * @return lexeme
+   */
+  public String getLexeme() {
+    return lexeme;
+  }
+
+  /**
+   * Returns the current value of the type field.
+   * @return type
+   */
+  public String getType() {
+    return type;
+  }
+
+  /**
+   * Sets the value of the lexeme field to the given value l.
+   * @param l The new value of lexeme
+   */
+  public void setLexeme(String l){
+    lexeme = l;
+  }
+
+  /**
+   * Sets the value of type to the given value t.
+   * @param t The new value of type
+   */
+  public void setType(String t){
+    type = t;
+  }
+}
+
+
+
+
+/**
  * A class to parse plain text from a Jack source file.
  *
  * @author Adam Turner
  */
-public class FileParser {
+public class Lexer {
 
   private List<String> rawData;
   private List<String> lines;
+  private List<Token> tokens;
 
   /**
-   * Create a new FileParser object with no stored data.
+   * Create a new Lexer object with no stored data.
    */
-  public FileParser(){
+  public Lexer(){
     rawData = new ArrayList<>();
     lines = new ArrayList<>();
+    tokens = new ArrayList<>();
   }
 
   /**
@@ -39,12 +97,20 @@ public class FileParser {
   }
 
   /**
+   * Returns the current state of the tokens field.
+   * @return tokens
+   */
+  public List<Token> getTokens() {
+    return tokens;
+  }
+
+  /**
    * Reads the data stored within the provided file and removes the comments.
    * @param filename The name of the file to be read
    * @throws FileNotFoundException Throws the checked FileNotFoundException
    * from the IO library.
    */
-  public void readData(String filename) throws FileNotFoundException {
+  public void parseData(String filename) throws FileNotFoundException {
     Scanner input = new Scanner(new File(filename));
 
     while (input.hasNextLine()){
@@ -100,5 +166,9 @@ public class FileParser {
         singleLineComment = false;
       }
     }
+  }
+
+  private void tokenizer(String expression) {
+
   }
 }

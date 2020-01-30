@@ -6,10 +6,10 @@ public class Compiler {
   public static void main(String[] args){
     System.out.println("Hello World!!!");
 
-    FileParser input = new FileParser();
+    Lexer input = new Lexer();
 
     try {
-      input.readData("tests/test_data.txt");
+      input.parseData("tests/test_data.txt");
     }
     catch (FileNotFoundException e){
       e.printStackTrace();
