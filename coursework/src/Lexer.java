@@ -1,3 +1,4 @@
+import javax.naming.directory.InvalidAttributesException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
@@ -11,15 +12,29 @@ import java.util.List;
  */
 class Token{
 
+  /** Different token types used by the lexer. To clarify certain abbreviations:
+   * leq - Less than or Equal to
+   * geq - Greater than or Equal to
+   * neq - Not equal to
+   * assignop - Assignment operator
+   * addop - Addition operator
+   * mulop - Multiplication operator
+   * divop - Division operator
+   */
+  enum  TokenTypes {
+    keyword, id, assignop, addop, mulop, divop, subop, num, bool, string,
+    character, punctuator, lessthan, greaterthan, leq, geq, neq, equals, not
+  }
+
   private String lexeme;
-  private String type;
+  private TokenTypes type;
 
   /**
    * Creates a new token object with the provided lexeme and token name/type
    * @param l the value of the lexeme (also called the token value/expression)
    * @param t the type of the token (e.g. identifier, operator, keyword, etc.)
    */
-  public Token(String l, String t){
+  public Token(String l, TokenTypes t){
     lexeme = l;
     type = t;
   }
@@ -36,7 +51,7 @@ class Token{
    * Returns the current value of the type field.
    * @return type
    */
-  public String getType() {
+  public TokenTypes getType() {
     return type;
   }
 
@@ -52,8 +67,13 @@ class Token{
    * Sets the value of type to the given value t.
    * @param t The new value of type
    */
-  public void setType(String t){
+  public void setType(TokenTypes t){
     type = t;
+  }
+
+  @Override
+  public String toString(){
+    return "(" + lexeme + ", " + type + ")";
   }
 }
 
@@ -102,7 +122,13 @@ public class Lexer {
    * @return token
    */
   public Token getNextToken() {
-    return new Token("Temp", "Temp Implementation");
+    if (tokens.size() == 0){
+      return null;
+    }
+
+    Token toReturn = tokens.get(0);
+    tokens.remove(0);
+    return toReturn;
   }
 
   /**
@@ -111,7 +137,11 @@ public class Lexer {
    * @return token
    */
   public Token peekNextToken() {
-    return new Token("Temp", "Temp Implementation");
+    if (tokens.size() == 0){
+      return null;
+    }
+
+    return tokens.get(0);
   }
 
   /**
@@ -128,6 +158,7 @@ public class Lexer {
     }
 
     removeComments(); //Remove all the comments from the file
+    tokenizer();
   }
 
   private void removeComments() {
@@ -178,7 +209,38 @@ public class Lexer {
     }
   }
 
-  private void tokenizer(String expression) {
+  private void tokenizer() {
+    StringBuilder lexeme = new StringBuilder();
 
+    for (String line : lines){
+      int i=0;
+      while (i<line.length()) {
+        char firstChar = line.charAt(i);
+        if (Character.isLetter(firstChar)) {
+          while (i < line.length() && (Character.isLetter(line.charAt(i)) || Character.isDigit(line.charAt(i)))) {
+            lexeme.append(line.charAt(i));
+            i++;
+          }
+          tokens.add(new Token(lexeme.toString(), Token.TokenTypes.id));
+        }
+        else if (firstChar == '(' || firstChar == ')' || firstChar == '{' || firstChar == '}' ||
+                firstChar == ';') {
+          lexeme.append(firstChar);
+          tokens.add(new Token(lexeme.toString(), Token.TokenTypes.punctuator));
+        }
+        else if (firstChar == '"') {
+          lexeme.append(firstChar);
+          i++;
+          while (line.charAt(i) != '"') {
+            lexeme.append(line.charAt(i));
+            i++;
+          }
+          lexeme.append(line.charAt(i));
+          tokens.add(new Token(lexeme.toString(), Token.TokenTypes.string));
+        }
+        lexeme.delete(0, lexeme.length());
+        i++;
+      }
+    }
   }
 }

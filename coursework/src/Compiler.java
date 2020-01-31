@@ -19,11 +19,9 @@ public class Compiler {
       e.printStackTrace();
     }
 
-    List<String> data = input.getLines();
-
-    for (String line : data){
-      System.out.println(line);
+    Token t;
+    while ((t = input.getNextToken()) != null){
+      System.out.println(t);
     }
-
   }
 }
