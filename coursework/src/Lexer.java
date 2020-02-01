@@ -196,6 +196,10 @@ public class Lexer {
         }
       }
 
+      if (line.length() == 1 && !(Character.isSpaceChar(line.charAt(0)))){
+        builder.append(line.charAt(0)); //Adds lines that are a single character
+      }
+
       if (builder.length() > 0){
         lines.add(builder.toString());
         builder.delete(0, builder.length()); //Reset the StringBuilder
@@ -244,9 +248,6 @@ public class Lexer {
           else if (value.equals("null")){
             tokens.add(new Token(lexeme.toString(), Token.TokenTypes.nullReference));
           }
-          else if (value.length() == 1){
-            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.character));
-          }
           else{
             tokens.add(new Token(lexeme.toString(), Token.TokenTypes.id));
           }
@@ -256,18 +257,22 @@ public class Lexer {
           tokens.add(new Token(lexeme.toString(), Token.TokenTypes.punctuator));
         }
         else if (firstChar == ';'){
-          lexeme.append(';'); //TODO: Doesn't add this by default, but why?
+          lexeme.append(firstChar);
           tokens.add(new Token(lexeme.toString(), Token.TokenTypes.terminator));
         }
         else if (firstChar == '[' || firstChar == ']'){
+          lexeme.append(firstChar);
           tokens.add(new Token(lexeme.toString(), Token.TokenTypes.arrayIndex));
         }
         else if (firstChar == '.'){
+          lexeme.append(firstChar);
           tokens.add(new Token(lexeme.toString(), Token.TokenTypes.membership));
         }
         else if (firstChar == '='){
           i++;
-          if (line.charAt(i) == '='){ //TODO: Doesn't add this either
+          lexeme.append(firstChar);
+          if (line.charAt(i) == '='){
+            lexeme.append(line.charAt(i));
             tokens.add(new Token(lexeme.toString(), Token.TokenTypes.equals));
           }
           else {
@@ -275,17 +280,20 @@ public class Lexer {
           }
         }
         else if (firstChar == ','){
+          lexeme.append(firstChar);
           tokens.add(new Token(lexeme.toString(), Token.TokenTypes.separator));
         }
-        //TODO: And doesn't add this either
         else if (firstChar == '+' || firstChar == '-' || firstChar == '/' ||
                 firstChar == '*' || firstChar == '<' || firstChar == '>' ||
                 firstChar == '~' || firstChar == '|' || firstChar == '&'){
+          lexeme.append(firstChar);
           if ((firstChar == '<' && line.charAt(i+1) == '=')){
+            lexeme.append(line.charAt(i+1));
             tokens.add(new Token(lexeme.toString(), Token.TokenTypes.leq));
             i++;
           }
           else if (firstChar == '>' && line.charAt(i+1) == '='){
+            lexeme.append(line.charAt(i+1));
             tokens.add(new Token(lexeme.toString(), Token.TokenTypes.geq));
             i++;
           }
@@ -294,7 +302,9 @@ public class Lexer {
           }
         }
         else if (firstChar == '!'){
+          lexeme.append(firstChar);
           if (line.charAt(i+1) == '='){
+            lexeme.append(line.charAt(i+1));
             tokens.add(new Token(lexeme.toString(), Token.TokenTypes.neq));
             i++;
           }
@@ -310,7 +320,13 @@ public class Lexer {
             i++;
           }
           lexeme.append(line.charAt(i));
-          tokens.add(new Token(lexeme.toString(), Token.TokenTypes.string));
+          if (lexeme.length() == 3){
+            tokens.add(new Token(lexeme.toString(),
+                    Token.TokenTypes.character));
+          }
+          else {
+            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.string));
+          }
         }
         else if (Character.isDigit(firstChar)){
           while (i < line.length() && (Character.isDigit(line.charAt(i)))){
