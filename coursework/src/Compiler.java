@@ -19,6 +19,11 @@ public class Compiler {
       e.printStackTrace();
     }
 
+    /*List<String> lines = input.getLines();
+    for (String line : lines){
+      System.out.println(line);
+    }*/
+
     Token t;
     while ((t = input.getNextToken()) != null){
       System.out.println(t);
