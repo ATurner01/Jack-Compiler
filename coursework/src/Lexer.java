@@ -1,4 +1,3 @@
-import javax.naming.directory.InvalidAttributesException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
