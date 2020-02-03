@@ -178,6 +178,16 @@ public class Lexer {
         }
         else if (line.charAt(i) == '*' && line.charAt(i+1) == '/'){
           multiLineComment = false;
+          write = true;
+
+          //Advance the input to skip over the comment symbols.
+          //If the new value of i is greater or equal to the length of the line,
+          // then move onto the next line
+          i = i+2;
+          if (i>=line.length()){
+            continue;
+          }
+          builder.append(" "); //Add whitespace to preserve the spacing
         }
 
         //If we detect either a single or multi-line comment, do not write chars
