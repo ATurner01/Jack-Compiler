@@ -238,6 +238,7 @@ public class Lexer {
             lexeme.append(line.charAt(i));
             i++;
           }
+          i--; //Decrement position so we dont consume next token by accident
 
           String value = lexeme.toString();
           boolean key = false;
@@ -280,6 +281,7 @@ public class Lexer {
         else if (firstChar == '='){
           i++;
           lexeme.append(firstChar);
+          //Check to see if token is assign operator or comparison operator
           if (line.charAt(i) == '='){
             lexeme.append(line.charAt(i));
             tokens.add(new Token(lexeme.toString(), Token.TokenTypes.equals));
@@ -296,6 +298,9 @@ public class Lexer {
                 firstChar == '*' || firstChar == '<' || firstChar == '>' ||
                 firstChar == '~' || firstChar == '|' || firstChar == '&'){
           lexeme.append(firstChar);
+
+          //Check to see if operator is followed by an equals. If so, and if
+          // starting operator was '<' or '>', token must be comparison operator
           if ((firstChar == '<' && line.charAt(i+1) == '=')){
             lexeme.append(line.charAt(i+1));
             tokens.add(new Token(lexeme.toString(), Token.TokenTypes.leq));
@@ -312,6 +317,8 @@ public class Lexer {
         }
         else if (firstChar == '!'){
           lexeme.append(firstChar);
+
+          //Determine if we have obtained the 'Not' operator or comparison
           if (line.charAt(i+1) == '='){
             lexeme.append(line.charAt(i+1));
             tokens.add(new Token(lexeme.toString(), Token.TokenTypes.neq));
@@ -329,22 +336,27 @@ public class Lexer {
             i++;
           }
           lexeme.append(line.charAt(i));
-          if (lexeme.length() == 3){
-            tokens.add(new Token(lexeme.toString(),
-                    Token.TokenTypes.character));
+          tokens.add(new Token(lexeme.toString(), Token.TokenTypes.string));
+        }
+        else if (firstChar == '\''){
+          lexeme.append(firstChar);
+          i++;
+          while (line.charAt(i) != '\''){
+            lexeme.append(line.charAt(i));
+            i++;
           }
-          else {
-            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.string));
-          }
+          lexeme.append(line.charAt(i));
+          tokens.add(new Token(lexeme.toString(), Token.TokenTypes.character));
         }
         else if (Character.isDigit(firstChar)){
           while (i < line.length() && (Character.isDigit(line.charAt(i)))){
             lexeme.append(line.charAt(i));
             i++;
           }
+          i--; //Decrement position so we dont consume next token by accident
           tokens.add(new Token(lexeme.toString(), Token.TokenTypes.num));
         }
-        lexeme.delete(0, lexeme.length());
+        lexeme.delete(0, lexeme.length()); //Empty the string for the lexeme
         i++;
       }
     }

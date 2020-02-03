@@ -16,6 +16,11 @@ class Main {
         let n = Keyboard.readInt("Enter n: ");
         do Output.printString("The result is: ");
         do Output.printInt(sum(n));
+
+        Array x = Array.new();
+        x = [1, 2, 4, 8];
+        char c = 'a';
+
         return;
     }
 }
