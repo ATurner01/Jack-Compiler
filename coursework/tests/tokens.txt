@@ -22,7 +22,7 @@
 <;, terminator>
 <while, keyword>
 <(, punctuator>
-<~, operator>
+<~, not>
 <(, punctuator>
 <i, id>
 <>, operator>

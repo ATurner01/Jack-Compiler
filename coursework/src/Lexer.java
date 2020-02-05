@@ -311,21 +311,15 @@ public class Lexer {
             tokens.add(new Token(lexeme.toString(), Token.TokenTypes.geq));
             i++;
           }
-          else {
-            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.operator));
-          }
-        }
-        else if (firstChar == '!'){
-          lexeme.append(firstChar);
-
-          //Determine if we have obtained the 'Not' operator or comparison
-          if (line.charAt(i+1) == '='){
+          else if (firstChar == '~' && line.charAt(i+1) == '='){
             lexeme.append(line.charAt(i+1));
             tokens.add(new Token(lexeme.toString(), Token.TokenTypes.neq));
-            i++;
+          }
+          else if (firstChar == '~'){
+            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.not));
           }
           else {
-            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.not));
+            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.operator));
           }
         }
         else if (firstChar == '"') {
@@ -355,6 +349,10 @@ public class Lexer {
           }
           i--; //Decrement position so we dont consume next token by accident
           tokens.add(new Token(lexeme.toString(), Token.TokenTypes.num));
+        }
+        else if (!(Character.isSpaceChar(firstChar))){
+          throw new LexerException("Unexpected symbol on line " + (lines.indexOf(line)+1)
+          + ": '" + firstChar + "'. Symbol is not recognised.");
         }
         lexeme.delete(0, lexeme.length()); //Empty the string for the lexeme
         i++;
