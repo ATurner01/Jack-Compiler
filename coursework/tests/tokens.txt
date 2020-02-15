@@ -114,6 +114,11 @@
 <=, assignop>
 <'a', character>
 <;, terminator>
+<int, keyword>
+<_test_, id>
+<=, assignop>
+<4, num>
+<;, terminator>
 <return, keyword>
 <;, terminator>
 <}, punctuator>

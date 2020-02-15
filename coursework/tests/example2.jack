@@ -21,6 +21,8 @@ class Main {
         x = [1, 2, 4, 8];
         char c = 'a';
 
+        int _test_ = 4;
+
         return;
     }
 }

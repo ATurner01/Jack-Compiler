@@ -233,8 +233,8 @@ public class Lexer {
       int i=0;
       while (i<line.length()) {
         char firstChar = line.charAt(i);
-        if (Character.isLetter(firstChar)) {
-          while (i < line.length() && (Character.isLetter(line.charAt(i)) || Character.isDigit(line.charAt(i)))) {
+        if (Character.isLetter(firstChar) || firstChar == '_') {
+          while (i < line.length() && (Character.isLetter(line.charAt(i)) || Character.isDigit(line.charAt(i)) || line.charAt(i) == '_')) {
             lexeme.append(line.charAt(i));
             i++;
           }
