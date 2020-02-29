@@ -1,125 +1,125 @@
-<class, keyword>
-<Main, id>
-<{, punctuator>
-<function, keyword>
-<int, keyword>
-<sum, id>
-<(, punctuator>
-<int, keyword>
-<n, id>
-<), punctuator>
-<{, punctuator>
-<var, keyword>
-<int, keyword>
-<sum, id>
-<,, separator>
-<i, id>
-<;, terminator>
-<let, keyword>
-<i, id>
-<=, assignop>
-<1, num>
-<;, terminator>
-<while, keyword>
-<(, punctuator>
-<~, not>
-<(, punctuator>
-<i, id>
-<>, operator>
-<n, id>
-<), punctuator>
-<), punctuator>
-<{, punctuator>
-<let, keyword>
-<sum, id>
-<=, assignop>
-<sum, id>
-<+, operator>
-<i, id>
-<;, terminator>
-<let, keyword>
-<i, id>
-<=, assignop>
-<i, id>
-<+, operator>
-<1, num>
-<;, terminator>
-<}, punctuator>
-<return, keyword>
-<sum, id>
-<;, terminator>
-<}, punctuator>
-<function, keyword>
-<void, keyword>
-<main, id>
-<(, punctuator>
-<), punctuator>
-<{, punctuator>
-<var, keyword>
-<int, keyword>
-<n, id>
-<;, terminator>
-<let, keyword>
-<n, id>
-<=, assignop>
-<Keyboard, id>
-<., membership>
-<readInt, id>
-<(, punctuator>
-<"Enter n: ", string>
-<), punctuator>
-<;, terminator>
-<do, keyword>
-<Output, id>
-<., membership>
-<printString, id>
-<(, punctuator>
-<"The result is: ", string>
-<), punctuator>
-<;, terminator>
-<do, keyword>
-<Output, id>
-<., membership>
-<printInt, id>
-<(, punctuator>
-<sum, id>
-<(, punctuator>
-<n, id>
-<), punctuator>
-<), punctuator>
-<;, terminator>
-<Array, id>
-<x, id>
-<=, assignop>
-<Array, id>
-<., membership>
-<new, id>
-<(, punctuator>
-<), punctuator>
-<;, terminator>
-<x, id>
-<=, assignop>
-<[, arrayIndex>
-<1, num>
-<,, separator>
-<2, num>
-<,, separator>
-<4, num>
-<,, separator>
-<8, num>
-<], arrayIndex>
-<;, terminator>
-<char, keyword>
-<c, id>
-<=, assignop>
-<'a', character>
-<;, terminator>
-<int, keyword>
-<_test_, id>
-<=, assignop>
-<4, num>
-<;, terminator>
-<return, keyword>
-<;, terminator>
-<}, punctuator>
-<}, punctuator>
+<class, keyword> 1
+<Main, id> 1
+<{, punctuator> 1
+<function, keyword> 4
+<int, keyword> 4
+<sum, id> 4
+<(, punctuator> 4
+<int, keyword> 4
+<n, id> 4
+<), punctuator> 4
+<{, punctuator> 4
+<var, keyword> 5
+<int, keyword> 5
+<sum, id> 5
+<,, separator> 5
+<i, id> 5
+<;, terminator> 5
+<let, keyword> 6
+<i, id> 6
+<=, assignop> 6
+<1, num> 6
+<;, terminator> 6
+<while, keyword> 7
+<(, punctuator> 7
+<~, not> 7
+<(, punctuator> 7
+<i, id> 7
+<>, operator> 7
+<n, id> 7
+<), punctuator> 7
+<), punctuator> 7
+<{, punctuator> 7
+<let, keyword> 8
+<sum, id> 8
+<=, assignop> 8
+<sum, id> 8
+<+, operator> 8
+<i, id> 8
+<;, terminator> 8
+<let, keyword> 9
+<i, id> 9
+<=, assignop> 9
+<i, id> 9
+<+, operator> 9
+<1, num> 9
+<;, terminator> 9
+<}, punctuator> 10
+<return, keyword> 11
+<sum, id> 11
+<;, terminator> 11
+<}, punctuator> 12
+<function, keyword> 14
+<void, keyword> 14
+<main, id> 14
+<(, punctuator> 14
+<), punctuator> 14
+<{, punctuator> 14
+<var, keyword> 15
+<int, keyword> 15
+<n, id> 15
+<;, terminator> 15
+<let, keyword> 16
+<n, id> 16
+<=, assignop> 16
+<Keyboard, id> 16
+<., membership> 16
+<readInt, id> 16
+<(, punctuator> 16
+<"Enter n: ", string> 16
+<), punctuator> 16
+<;, terminator> 16
+<do, keyword> 17
+<Output, id> 17
+<., membership> 17
+<printString, id> 17
+<(, punctuator> 17
+<"The result is: ", string> 17
+<), punctuator> 17
+<;, terminator> 17
+<do, keyword> 18
+<Output, id> 18
+<., membership> 18
+<printInt, id> 18
+<(, punctuator> 18
+<sum, id> 18
+<(, punctuator> 18
+<n, id> 18
+<), punctuator> 18
+<), punctuator> 18
+<;, terminator> 18
+<Array, id> 20
+<x, id> 20
+<=, assignop> 20
+<Array, id> 20
+<., membership> 20
+<new, id> 20
+<(, punctuator> 20
+<), punctuator> 20
+<;, terminator> 20
+<x, id> 21
+<=, assignop> 21
+<[, arrayIndex> 21
+<1, num> 21
+<,, separator> 21
+<2, num> 21
+<,, separator> 21
+<4, num> 21
+<,, separator> 21
+<8, num> 21
+<], arrayIndex> 21
+<;, terminator> 21
+<char, keyword> 22
+<c, id> 22
+<=, assignop> 22
+<'a', character> 22
+<;, terminator> 22
+<int, keyword> 24
+<_test_, id> 24
+<=, assignop> 24
+<4, num> 24
+<;, terminator> 24
+<return, keyword> 26
+<;, terminator> 26
+<}, punctuator> 12
+<}, punctuator> 28

@@ -25,15 +25,17 @@ class Token{
 
   private String lexeme;
   private TokenTypes type;
+  private int lineNum;
 
   /**
    * Creates a new token object with the provided lexeme and token name/type
    * @param l the value of the lexeme (also called the token value/expression)
    * @param t the type of the token (e.g. identifier, operator, keyword, etc.)
    */
-  public Token(String l, TokenTypes t){
+  public Token(String l, TokenTypes t, int line){
     lexeme = l;
     type = t;
+    lineNum = line;
   }
 
   /**
@@ -50,6 +52,15 @@ class Token{
    */
   public TokenTypes getType() {
     return type;
+  }
+
+  /**
+   * Returns the line number that the current token was found on in the
+   * source file
+   * @return line
+   */
+  public int getLineNum() {
+    return lineNum;
   }
 
   /**
@@ -70,7 +81,7 @@ class Token{
 
   @Override
   public String toString(){
-    return "<" + lexeme + ", " + type + ">";
+    return "<" + lexeme + ", " + type + ">" + " " + lineNum;
   }
 }
 
@@ -233,6 +244,7 @@ public class Lexer {
       int i=0;
       while (i<line.length()) {
         char firstChar = line.charAt(i);
+        int currLine = lines.indexOf(line) + 1;
         if (Character.isLetter(firstChar) || firstChar == '_') {
           while (i < line.length() && (Character.isLetter(line.charAt(i)) || Character.isDigit(line.charAt(i)) || line.charAt(i) == '_')) {
             lexeme.append(line.charAt(i));
@@ -250,33 +262,40 @@ public class Lexer {
           }
 
           if (key){
-            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.keyword));
+            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.keyword,
+             currLine));
           }
           else if (value.equals("true") || value.equals("false")){
-            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.bool));
+            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.bool,
+                    currLine));
           }
           else if (value.equals("null")){
-            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.nullReference));
+            tokens.add(new Token(lexeme.toString(),
+                    Token.TokenTypes.nullReference, currLine));
           }
           else{
-            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.id));
+            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.id, currLine));
           }
         }
         else if (firstChar == '(' || firstChar == ')' || firstChar == '{' || firstChar == '}') {
           lexeme.append(firstChar);
-          tokens.add(new Token(lexeme.toString(), Token.TokenTypes.punctuator));
+          tokens.add(new Token(lexeme.toString(), Token.TokenTypes.punctuator
+                  , currLine));
         }
         else if (firstChar == ';'){
           lexeme.append(firstChar);
-          tokens.add(new Token(lexeme.toString(), Token.TokenTypes.terminator));
+          tokens.add(new Token(lexeme.toString(), Token.TokenTypes.terminator
+                  , currLine));
         }
         else if (firstChar == '[' || firstChar == ']'){
           lexeme.append(firstChar);
-          tokens.add(new Token(lexeme.toString(), Token.TokenTypes.arrayIndex));
+          tokens.add(new Token(lexeme.toString(), Token.TokenTypes.arrayIndex
+                  , currLine));
         }
         else if (firstChar == '.'){
           lexeme.append(firstChar);
-          tokens.add(new Token(lexeme.toString(), Token.TokenTypes.membership));
+          tokens.add(new Token(lexeme.toString(), Token.TokenTypes.membership
+                  , currLine));
         }
         else if (firstChar == '='){
           i++;
@@ -284,15 +303,18 @@ public class Lexer {
           //Check to see if token is assign operator or comparison operator
           if (line.charAt(i) == '='){
             lexeme.append(line.charAt(i));
-            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.equals));
+            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.equals,
+                    currLine));
           }
           else {
-            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.assignop));
+            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.assignop
+                    , currLine));
           }
         }
         else if (firstChar == ','){
           lexeme.append(firstChar);
-          tokens.add(new Token(lexeme.toString(), Token.TokenTypes.separator));
+          tokens.add(new Token(lexeme.toString(), Token.TokenTypes.separator,
+           currLine));
         }
         else if (firstChar == '+' || firstChar == '-' || firstChar == '/' ||
                 firstChar == '*' || firstChar == '<' || firstChar == '>' ||
@@ -303,23 +325,26 @@ public class Lexer {
           // starting operator was '<' or '>', token must be comparison operator
           if ((firstChar == '<' && line.charAt(i+1) == '=')){
             lexeme.append(line.charAt(i+1));
-            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.leq));
+            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.leq, currLine));
             i++;
           }
           else if (firstChar == '>' && line.charAt(i+1) == '='){
             lexeme.append(line.charAt(i+1));
-            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.geq));
+            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.geq, currLine));
             i++;
           }
           else if (firstChar == '~' && line.charAt(i+1) == '='){
             lexeme.append(line.charAt(i+1));
-            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.neq));
+            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.neq,
+                    currLine));
           }
           else if (firstChar == '~'){
-            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.not));
+            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.not,
+                    currLine));
           }
           else {
-            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.operator));
+            tokens.add(new Token(lexeme.toString(), Token.TokenTypes.operator
+                    , currLine));
           }
         }
         else if (firstChar == '"') {
@@ -330,7 +355,8 @@ public class Lexer {
             i++;
           }
           lexeme.append(line.charAt(i));
-          tokens.add(new Token(lexeme.toString(), Token.TokenTypes.string));
+          tokens.add(new Token(lexeme.toString(), Token.TokenTypes.string,
+                  currLine));
         }
         else if (firstChar == '\''){
           lexeme.append(firstChar);
@@ -340,7 +366,8 @@ public class Lexer {
             i++;
           }
           lexeme.append(line.charAt(i));
-          tokens.add(new Token(lexeme.toString(), Token.TokenTypes.character));
+          tokens.add(new Token(lexeme.toString(), Token.TokenTypes.character,
+           currLine));
         }
         else if (Character.isDigit(firstChar)){
           while (i < line.length() && (Character.isDigit(line.charAt(i)))){
@@ -348,11 +375,11 @@ public class Lexer {
             i++;
           }
           i--; //Decrement position so we dont consume next token by accident
-          tokens.add(new Token(lexeme.toString(), Token.TokenTypes.num));
+          tokens.add(new Token(lexeme.toString(), Token.TokenTypes.num, currLine));
         }
         else if (!(Character.isSpaceChar(firstChar))){
-          throw new LexerException("Unexpected symbol on line " + (lines.indexOf(line)+1)
-          + ": '" + firstChar + "'. Symbol is not recognised.");
+          throw new LexerException("Unexpected symbol on line " + currLine +
+          ": '" + firstChar + "'. Symbol is not recognised.");
         }
         lexeme.delete(0, lexeme.length()); //Empty the string for the lexeme
         i++;
