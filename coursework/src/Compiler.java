@@ -11,14 +11,9 @@ public class Compiler {
       System.exit(1);
     }
 
-    Lexer input = new Lexer();
 
-    try {
-      input.parseData(args[0]);
-    }
-    catch (FileNotFoundException e){
-      e.printStackTrace();
-    }
+    Parser parse = new Parser(args[0]);
+    Lexer input = parse.getLexer();
 
     List<String> lines = input.getLines();
     for (String line : lines){
