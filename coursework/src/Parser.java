@@ -611,13 +611,20 @@ public class Parser {
   }
 
   private void expressionList(){
-    expression();
-
     Token t = lexer.peekNextToken();
-    while (t.getLexeme().equals(",")){
-      lexer.getNextToken();
+    if (t.getType() == Token.TokenTypes.num || t.getType() == Token.TokenTypes.id ||
+        t.getLexeme().equals("(") || t.getType() == Token.TokenTypes.string ||
+        t.getType() == Token.TokenTypes.bool || t.getType() == Token.TokenTypes.nullReference ||
+        t.getLexeme().equals("this")) {
+
       expression();
+
       t = lexer.peekNextToken();
+      while (t.getLexeme().equals(",")) {
+        lexer.getNextToken();
+        expression();
+        t = lexer.peekNextToken();
+      }
     }
   }
 
