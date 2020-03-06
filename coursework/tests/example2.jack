@@ -17,11 +17,14 @@ class Main {
         do Output.printString("The result is: ");
         do Output.printInt(sum(n));
 
-        Array x = Array.new();
-        x = [1, 2, 4, 8];
-        char c = 'a';
+        var Array x;
+        let x = Array.new(4);
+        let x[2] = 6;
+        var char c;
+        let c = 'a';
 
-        int _test_ = 4;
+        var int _test_;
+        let _test_ = 4;
 
         return;
     }
