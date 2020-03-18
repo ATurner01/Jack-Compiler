@@ -8,6 +8,8 @@ import java.io.FileNotFoundException;
 public class Parser {
 
   private Lexer lexer;
+  private SymbolTable[] symbolTables;
+  private int currSymbolTable;
 
   /**
    * Declares a new Parser object that reads input from a file through a
@@ -18,6 +20,12 @@ public class Parser {
    */
   public Parser(String file) throws FileNotFoundException{
     lexer = new Lexer();
+
+    symbolTables = new SymbolTable[2];
+    symbolTables[0] = new SymbolTable();
+    symbolTables[1] = new SymbolTable();
+    currSymbolTable = 0;
+
     lexer.parseData(file);
     parse();
   }
