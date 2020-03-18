@@ -72,7 +72,7 @@ public class Compiler {
   public static void main(String[] args) throws FileNotFoundException{
 
     if (args.length != 1){
-      System.err.println("Error. Input file required.");
+      System.err.println("Error. Input directory required.");
       System.exit(1);
     }
 

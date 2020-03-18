@@ -179,14 +179,14 @@ public class Parser {
     }
     else {
       throw new ParserException("Error on line " + t.getLineNum() + ". " +
-              "Expected function decleration, got " + t.getLexeme() + ".");
+              "Expected function declaration, got " + t.getLexeme() + ".");
     }
 
     t = lexer.peekNextToken();
     if (t.getLexeme().equals("void")){
       lexer.getNextToken();
     }
-    else if (t.getType() == Token.TokenTypes.keyword){
+    else if (t.getType() == Token.TokenTypes.keyword || t.getType() == Token.TokenTypes.id){
       type();
     }
     else {
@@ -222,7 +222,7 @@ public class Parser {
 
   private void paramList(){
     Token t = lexer.peekNextToken();
-    if (t.getType() == Token.TokenTypes.keyword){
+    if (t.getType() == Token.TokenTypes.keyword || t.getType() == Token.TokenTypes.id){
       type();
 
       t = lexer.getNextToken();
@@ -461,7 +461,7 @@ public class Parser {
     if (t.getLexeme().equals("else")){
       lexer.getNextToken();
 
-      t = lexer.peekNextToken();
+      t = lexer.getNextToken();
       if (t.getLexeme().equals("{")){
 
       }
@@ -507,11 +507,7 @@ public class Parser {
               "Expected \"(\", got " + t.getLexeme() + ".");
     }
 
-    t = lexer.peekNextToken();
-    while (!(t.getLexeme().equals(")"))){
-      expression();
-      t = lexer.peekNextToken();
-    }
+    expression();
 
     t = lexer.getNextToken();
     if (t.getLexeme().equals(")")){
@@ -614,8 +610,8 @@ public class Parser {
     Token t = lexer.peekNextToken();
     if (t.getType() == Token.TokenTypes.num || t.getType() == Token.TokenTypes.id ||
         t.getLexeme().equals("(") || t.getType() == Token.TokenTypes.string ||
-        t.getType() == Token.TokenTypes.bool || t.getType() == Token.TokenTypes.nullReference ||
-        t.getLexeme().equals("this")) {
+        t.getLexeme().equals("true") || t.getLexeme().equals("false") || t.getType() == Token.TokenTypes.nullReference ||
+        t.getLexeme().equals("this") || t.getLexeme().equals("-") || t.getLexeme().equals("~")) {
 
       expression();
 
@@ -639,9 +635,10 @@ public class Parser {
     }
 
     t = lexer.peekNextToken();
-    if (t.getLexeme().equals("-") || t.getLexeme().equals("~") ||
+    if (t.getLexeme().equals("-") || t.getLexeme().equals("~") || t.getLexeme().equals("this") ||
             t.getType() == Token.TokenTypes.num || t.getType() == Token.TokenTypes.id ||
-            t.getType() == Token.TokenTypes.string || t.getType() == Token.TokenTypes.nullReference) {
+            t.getType() == Token.TokenTypes.string || t.getType() == Token.TokenTypes.nullReference ||
+            t.getType() == Token.TokenTypes.bool) {
 
       expression();
     }

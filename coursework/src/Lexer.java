@@ -377,6 +377,9 @@ public class Lexer {
           i--; //Decrement position so we dont consume next token by accident
           tokens.add(new Token(lexeme.toString(), Token.TokenTypes.num, currLine));
         }
+        else if (firstChar == '\t'){
+          // Skips over the tab character
+        }
         else if (!(Character.isSpaceChar(firstChar))){
           throw new LexerException("Unexpected symbol on line " + currLine +
           ": '" + firstChar + "'. Symbol is not recognised.");
