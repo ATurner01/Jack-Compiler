@@ -118,6 +118,16 @@ public class SymbolTable {
     return false;
   }
 
+  public Symbol getSymbol(String name){
+    for (Symbol s : table){
+      if (s.getSymbolName().equals(name)){
+        return s;
+      }
+    }
+
+    return null;
+  }
+
   /**
    * A helper function that will add a new table to the a list of symbol
    * tables, and return the index of this new table in the list (i.e. the

@@ -14,6 +14,8 @@ public class Parser {
   private int currSymbolTable;
   private String className;
   private String currScope;
+  private String operandType;
+  private String identifierOperand = null;
 
   /**
    * Declares a new Parser object that reads input from a file through a
@@ -427,6 +429,7 @@ public class Parser {
 
   private void letStatement(){
     Token t = lexer.getNextToken();
+    Symbol lhs;
     if (t.getLexeme().equals("let")){
 
     }
@@ -441,6 +444,10 @@ public class Parser {
         if (!(symbolTables.get(0).lookUp(t.getLexeme())))
         throw new ParserException("Error on line " + t.getLineNum() + ". " +
                 "Local variable " + t.getLexeme() + " is not defined.");
+      }
+      lhs = symbolTables.get(currSymbolTable).getSymbol(t.getLexeme());
+      if (lhs == null){
+        lhs = symbolTables.get(0).getSymbol(t.getLexeme());
       }
     }
     else {
@@ -469,6 +476,33 @@ public class Parser {
     }
 
     expression();
+
+    Symbol rhs;
+    if (identifierOperand != null){
+      rhs = symbolTables.get(currSymbolTable).getSymbol(identifierOperand);
+      if (rhs == null){
+        rhs = symbolTables.get(0).getSymbol(identifierOperand);
+      }
+
+      if ((rhs != null) && !(lhs.getType().equals(rhs.getType()))){
+        throw new ParserException("Error on line " + t.getLineNum() + ". " +
+                "Mismatched types for " + lhs.getType() + " and " + rhs.getType());
+      }
+      else if (rhs == null) {
+        if (!(lhs.getType().equals(identifierOperand))){
+          throw new ParserException("Error on line " + t.getLineNum() + ". " +
+                  "Mismatched types for " + lhs.getType() + " and " + identifierOperand);
+        }
+      }
+
+      identifierOperand = null;
+    }
+    else {
+      if (!(lhs.getType().equals(operandType))) {
+        throw new ParserException("Error on line " + t.getLineNum() + ". " +
+                "Mismatched types for " + lhs.getType() + " and " + operandType);
+      }
+    }
 
     t = lexer.getNextToken();
     if (t.getLexeme().equals(";")){
@@ -789,15 +823,16 @@ public class Parser {
   private void operand(){
     Token t = lexer.getNextToken();
     if (t.getType() == Token.TokenTypes.num){
-
+      operandType = "int";
     }
     else if (t.getType() == Token.TokenTypes.id){
+      identifierOperand = t.getLexeme();
       t = lexer.peekNextToken();
       if (t.getLexeme().equals(".")){
         lexer.getNextToken();
         t = lexer.peekNextToken();
         if (t.getType() == Token.TokenTypes.id){
-          lexer.getNextToken();
+          t = lexer.getNextToken();
         }
         else {
           throw new ParserException("Error on line " + t.getLineNum() + ". " +
@@ -834,6 +869,7 @@ public class Parser {
                   "Expected \")\", got " + t.getLexeme() + ".");
         }
       }
+
     }
     else if (t.getLexeme().equals("(")){
       expression();
@@ -848,19 +884,19 @@ public class Parser {
       }
     }
     else if (t.getType() == Token.TokenTypes.string || t.getType() == Token.TokenTypes.character){
-
+      operandType = "string";
     }
     else if (t.getLexeme().equals("true")){
-
+      operandType = "boolean";
     }
     else if (t.getLexeme().equals("false")){
-
+      operandType = "boolean";
     }
     else if (t.getType() == Token.TokenTypes.nullReference){
-
+      operandType = "null";
     }
     else if (t.getLexeme().equals("this")){
-
+      operandType = className;
     }
     else {
       throw new ParserException("Error on line " + t.getLineNum() + ". " +
