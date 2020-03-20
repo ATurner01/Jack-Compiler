@@ -65,7 +65,7 @@ class Symbol{
    */
   @Override
   public String toString(){
-    return symbolName + ", offset = " + offset;
+    return symbolName + ", type: " + type + ", kind: " + kind + ", offset = " + offset;
   }
 }
 
@@ -79,14 +79,16 @@ public class SymbolTable {
 
   private List<Symbol> table;
   private int offsetCount;
+  private String scope;
 
   /**
    * Creates a new SymbolTable object initialising an emptry list of symbols
    * and setting the global offset to 0
    */
-  public SymbolTable(){
+  public SymbolTable(String s){
     table = new ArrayList<>();
     offsetCount = 0;
+    scope = s;
   }
 
   /**
@@ -114,6 +116,43 @@ public class SymbolTable {
       }
     }
     return false;
+  }
+
+  /**
+   * A helper function that will add a new table to the a list of symbol
+   * tables, and return the index of this new table in the list (i.e. the
+   * last element of the list)
+   * @param tables a list of symbol table objects
+   * @param s the scope of the symbol table to be added
+   * @return the index of the last element of the list
+   */
+  public static int addTable(List<SymbolTable> tables, String s){
+    tables.add(new SymbolTable(s));
+    return tables.size() - 1;
+  }
+
+  /**
+   * Returns the list of symbols in the table
+   * @return table
+   */
+  public List<Symbol> getTable() {
+    return table;
+  }
+
+  /**
+   * Returns the offset of the last symbol in the table
+   * @return offsetCount
+   */
+  public int getOffsetCount() {
+    return offsetCount;
+  }
+
+  /**
+   * Returns the scope of the symbol table
+   * @return scope
+   */
+  public String getScope() {
+    return scope;
   }
 
   /**
