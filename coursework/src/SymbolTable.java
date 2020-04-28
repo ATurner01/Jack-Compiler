@@ -11,6 +11,7 @@ class Symbol{
   private String symbolName;
   private String type;
   private String kind;
+  private String belongs;
   private int offset;
 
   /**
@@ -20,10 +21,11 @@ class Symbol{
    * @param k the kind that the symbol represents
    * @param o the offset of the symbol in memory
    */
-  public Symbol(String n, String t, String k, int o){
+  public Symbol(String n, String t, String k, String b, int o){
     symbolName = n;
     type = t;
     kind = k;
+    belongs = b;
     offset = o;
   }
 
@@ -52,6 +54,14 @@ class Symbol{
   }
 
   /**
+   * Returns the class which the symbol belongs to
+   * @return belongs
+   */
+  public String getBelongs() {
+    return belongs;
+  }
+
+  /**
    * Returns the offset of the symbol in memory
    * @return offset
    */
@@ -65,7 +75,7 @@ class Symbol{
    */
   @Override
   public String toString(){
-    return symbolName + ", type: " + type + ", kind: " + kind + ", offset = " + offset;
+    return symbolName + ", type: " + type + ", kind: " + kind + ", offset = " + offset + ", class = " + belongs;
   }
 }
 
@@ -97,8 +107,8 @@ public class SymbolTable {
    * @param type the type of the symbol
    * @param kind the kind of the symbol
    */
-  public void insert(String name, String type, String kind){
-    Symbol symbol = new Symbol(name, type, kind, offsetCount);
+  public void insert(String name, String type, String kind, String  belong){
+    Symbol symbol = new Symbol(name, type, kind, belong, offsetCount);
     table.add(symbol);
     offsetCount++;
   }
@@ -118,6 +128,12 @@ public class SymbolTable {
     return false;
   }
 
+  /**
+   * Returns the symbol that possesses the given name if it exists in the
+   * symbol table
+   * @param name the name of the symbol to be retrieved
+   * @return the requested symbol if it exists, else returns null
+   */
   public Symbol getSymbol(String name){
     for (Symbol s : table){
       if (s.getSymbolName().equals(name)){
@@ -126,6 +142,27 @@ public class SymbolTable {
     }
 
     return null;
+  }
+
+  /**
+   * Checks to see whether the given symbol already exists within the scope
+   * of the current symbol table
+   * @param name the name of the symbol to be checked
+   * @param belongsTo the class which the symbol belongs to
+   * @return true if the symbol already exists in this class, else false
+   */
+  public boolean checkDuplicate(String name, String belongsTo){
+    if (this.lookUp(name)){
+      Symbol s = this.getSymbol(name);
+
+      if (belongsTo.equals(s.getBelongs())){
+        return true;
+      }
+
+      return false;
+    }
+
+    return false;
   }
 
   /**

@@ -1,6 +1,8 @@
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * A class that takes tokens from an input stream and checks they are valid
@@ -32,6 +34,8 @@ public class Parser {
     // table
     currSymbolTable = 0; // Set current symbol table as global symbol table
 
+    initialiseGlobalTable();
+
     lexer.parseData(file);
     parse();
 
@@ -41,6 +45,23 @@ public class Parser {
       System.out.println("");
     }
   }
+
+  private void initialiseGlobalTable() throws FileNotFoundException{
+    File libs = new File("src/libs.txt");
+    Scanner input = new Scanner(libs);
+
+    while(input.hasNextLine()){
+      String line = input.nextLine();
+      String[] entry = line.split(",");
+      if (entry[3].equals("null")){
+        symbolTables.get(0).insert(entry[0], entry[1], entry[2], null);
+      }
+      else {
+        symbolTables.get(0).insert(entry[0], entry[1], entry[2], entry[3]);
+      }
+    }
+  }
+
 
   /**
    * Returns the Lexer object used to tokenize the input data
@@ -73,9 +94,9 @@ public class Parser {
         throw new ParserException("Error on line " + t.getLineNum() + ". " +
                 "Class " + t.getLexeme() + " is already defined.");
       }
-      symbolTables.get(currSymbolTable).insert(t.getLexeme(), "None",
-              "class");
       className = t.getLexeme();
+      symbolTables.get(currSymbolTable).insert(t.getLexeme(), "None",
+              "class", null);
     }
     else {
       throw new ParserException("Error on line " + t.getLineNum() + ". " +
@@ -150,10 +171,14 @@ public class Parser {
     t = lexer.getNextToken();
     if (t.getType() == Token.TokenTypes.id){
       if (symbolTables.get(currSymbolTable).lookUp(t.getLexeme())){
-        throw new ParserException("Error on line " + t.getLineNum() + ". " +
-                "Class Variable " + t.getLexeme() + " is already defined.");
+        if (symbolTables.get(currSymbolTable).checkDuplicate(t.getLexeme(),
+                className)) {
+          throw new ParserException("Error on line " + t.getLineNum() + ". " +
+                  "Class Variable " + t.getLexeme() + " is already defined.");
+        }
       }
-      symbolTables.get(currSymbolTable).insert(t.getLexeme(), type, kind);
+      symbolTables.get(currSymbolTable).insert(t.getLexeme(), type, kind,
+              className);
     }
     else {
       throw new ParserException("Error on line " + t.getLineNum() + ". " +
@@ -167,10 +192,14 @@ public class Parser {
 
       if (t.getType() == Token.TokenTypes.id){
         if (symbolTables.get(currSymbolTable).lookUp(t.getLexeme())){
-          throw new ParserException("Error on line " + t.getLineNum() + ". " +
-                  "Class Variable " + t.getLexeme() + " is already defined.");
+          if (symbolTables.get(currSymbolTable).checkDuplicate(t.getLexeme(),
+                  className)) {
+            throw new ParserException("Error on line " + t.getLineNum() + ". " +
+                    "Class Variable " + t.getLexeme() + " is already defined.");
+          }
         }
-        symbolTables.get(currSymbolTable).insert(t.getLexeme(), type, kind);
+        symbolTables.get(currSymbolTable).insert(t.getLexeme(), type, kind,
+                className);
       }
       else {
         throw new ParserException("Error on line " + t.getLineNum() + ". " +
@@ -238,10 +267,14 @@ public class Parser {
     t = lexer.getNextToken();
     if (t.getType() == Token.TokenTypes.id){
       if (symbolTables.get(currSymbolTable).lookUp(t.getLexeme())){
-        throw new ParserException("Error on line " + t.getLineNum() + ". " +
-                "Function or method " + t.getLexeme() + " is already defined.");
+        if (symbolTables.get(currSymbolTable).checkDuplicate(t.getLexeme(),
+                className)) {
+          throw new ParserException("Error on line " + t.getLineNum() + ". " +
+                  "Function or method " + t.getLexeme() + " is already defined.");
+        }
       }
-      symbolTables.get(currSymbolTable).insert(t.getLexeme(), type, kind);
+      symbolTables.get(currSymbolTable).insert(t.getLexeme(), type, kind,
+              className);
       currScope = t.getLexeme();
     }
     else {
@@ -252,7 +285,8 @@ public class Parser {
     // Creates a new symbol table for the current function/method
     currSymbolTable = SymbolTable.addTable(symbolTables, currScope);
     // Adds the 'this' argument that is present in every JACK method/function
-    symbolTables.get(currSymbolTable).insert("this", className, "argument");
+    symbolTables.get(currSymbolTable).insert("this", className, "argument",
+            className);
 
     t = lexer.getNextToken();
     if (t.getLexeme().equals("(")){
@@ -283,11 +317,14 @@ public class Parser {
       t = lexer.getNextToken();
       if (t.getType() == Token.TokenTypes.id){
         if (symbolTables.get(currSymbolTable).lookUp(t.getLexeme())){
-          throw new ParserException("Error on line " + t.getLineNum() + ". " +
-                  "Argument " + t.getLexeme() + " is already defined.");
+          if (symbolTables.get(currSymbolTable).checkDuplicate(t.getLexeme(),
+                  className)) {
+            throw new ParserException("Error on line " + t.getLineNum() + ". " +
+                    "Argument " + t.getLexeme() + " is already defined.");
+          }
         }
         symbolTables.get(currSymbolTable).insert(t.getLexeme(), type,
-                "argument");
+                "argument", className);
       }
       else {
         throw new ParserException("Error on line " + t.getLineNum() + ". " +
@@ -302,11 +339,14 @@ public class Parser {
         t = lexer.getNextToken();
         if (t.getType() == Token.TokenTypes.id){
           if (symbolTables.get(currSymbolTable).lookUp(t.getLexeme())){
-            throw new ParserException("Error on line " + t.getLineNum() + ". " +
-                    "Argument " + t.getLexeme() + " is already defined.");
+            if (symbolTables.get(currSymbolTable).checkDuplicate(t.getLexeme(),
+                    className)) {
+              throw new ParserException("Error on line " + t.getLineNum() + ". " +
+                      "Argument " + t.getLexeme() + " is already defined.");
+            }
           }
           symbolTables.get(currSymbolTable).insert(t.getLexeme(), type,
-                  "argument");
+                  "argument", className);
         }
         else {
           throw new ParserException("Error on line " + t.getLineNum() + ". " +
@@ -385,11 +425,14 @@ public class Parser {
     t = lexer.getNextToken();
     if (t.getType() == Token.TokenTypes.id){
       if (symbolTables.get(currSymbolTable).lookUp(t.getLexeme())){
-        throw new ParserException("Error on line " + t.getLineNum() + ". " +
-                "Local variable " + t.getLexeme() + " is already defined.");
+        if (symbolTables.get(currSymbolTable).checkDuplicate(t.getLexeme(),
+                className)) {
+          throw new ParserException("Error on line " + t.getLineNum() + ". " +
+                  "Local variable " + t.getLexeme() + " is already defined.");
+        }
       }
       symbolTables.get(currSymbolTable).insert(t.getLexeme(), type,
-              "var");
+              "var", className);
     }
     else {
       throw new ParserException("Error on line " + t.getLineNum() + ". " +
@@ -403,11 +446,14 @@ public class Parser {
       t = lexer.getNextToken();
       if (t.getType() == Token.TokenTypes.id){
         if (symbolTables.get(currSymbolTable).lookUp(t.getLexeme())){
-          throw new ParserException("Error on line " + t.getLineNum() + ". " +
-                  "Local variable " + t.getLexeme() + " is already defined.");
+          if (symbolTables.get(currSymbolTable).checkDuplicate(t.getLexeme(),
+                  className)) {
+            throw new ParserException("Error on line " + t.getLineNum() + ". " +
+                    "Local variable " + t.getLexeme() + " is already defined.");
+          }
         }
         symbolTables.get(currSymbolTable).insert(t.getLexeme(), type,
-                "var");
+                "var", className);
       }
       else {
         throw new ParserException("Error on line "+ t.getLineNum() + ". " +
@@ -461,6 +507,18 @@ public class Parser {
       t = lexer.peekNextToken();
       while (!(t.getLexeme().equals("]"))){
         expression();
+        if (identifierOperand != null){
+          Symbol s =
+                  symbolTables.get(currSymbolTable).getSymbol(identifierOperand);
+          if (!(s.getType().equals("int"))){
+            throw new ParserException("Error on line " + t.getLineNum() + ". " +
+                    "Array indices must be an integer.");
+          }
+        }
+        else if (!(operandType.equals("int"))){
+          throw new ParserException("Error on line " + t.getLineNum() + ". " +
+                  "Array indices must be integers.");
+        }
         t = lexer.peekNextToken();
       }
       lexer.getNextToken();
@@ -484,7 +542,10 @@ public class Parser {
         rhs = symbolTables.get(0).getSymbol(identifierOperand);
       }
 
-      if ((rhs != null) && !(lhs.getType().equals(rhs.getType()))){
+      if (lhs.getType().equals("Array")){
+
+      }
+      else if ((rhs != null) && !(lhs.getType().equals(rhs.getType()))){
         throw new ParserException("Error on line " + t.getLineNum() + ". " +
                 "Mismatched types for " + lhs.getType() + " and " + rhs.getType());
       }
