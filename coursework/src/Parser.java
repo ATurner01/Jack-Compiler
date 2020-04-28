@@ -542,10 +542,17 @@ public class Parser {
         rhs = symbolTables.get(0).getSymbol(identifierOperand);
       }
 
-      if (lhs.getType().equals("Array")){
+      // Checks to see if the type of the local variable is a class (such as
+      // an array) that has already been defined in the symbol table
+      if (symbolTables.get(0).lookUp(lhs.getType())){
+
+      }
+      else if ((rhs != null) && (rhs.getKind().equals("class"))){
 
       }
       else if ((rhs != null) && !(lhs.getType().equals(rhs.getType()))){
+        System.out.println(lhs.toString());
+        System.out.println(rhs.toString());
         throw new ParserException("Error on line " + t.getLineNum() + ". " +
                 "Mismatched types for " + lhs.getType() + " and " + rhs.getType());
       }
