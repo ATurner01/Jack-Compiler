@@ -1,5 +1,4 @@
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -20,6 +19,7 @@ public class Parser {
   private String identifierOperand = null;
   private int numOfArgs;
   private String returnType;
+  private List<String> vmCode;
 
 
   /**
@@ -31,6 +31,7 @@ public class Parser {
    */
   public Parser(String file) throws FileNotFoundException{
     lexer = new Lexer();
+    vmCode = new ArrayList<>();
 
     symbolTables = new ArrayList<>();
     symbolTables.add(new SymbolTable("global")); // Initialise global symbol
@@ -42,6 +43,18 @@ public class Parser {
     lexer.parseData(file);
     parse();
 
+
+    int fileExtensionIndex = file.lastIndexOf(".");
+    String filename = file.substring(0, fileExtensionIndex);
+
+    try {
+      writeCode(filename);
+    }
+    catch (IOException e){
+      System.out.println("Error. Could not open VM file.");
+      e.printStackTrace();
+    }
+
     for (SymbolTable t : symbolTables){
       System.out.println(t.getScope());
       t.printTable();
@@ -49,6 +62,11 @@ public class Parser {
     }
   }
 
+  /**
+   * Initialises the global symbol table with the JACK libraries
+   * @throws FileNotFoundException thrown if the file containing all the JACK
+   * library declarations is missing
+   */
   private void initialiseGlobalTable() throws FileNotFoundException{
     File libs = new File("src/libs.txt");
     Scanner input = new Scanner(libs);
@@ -63,6 +81,31 @@ public class Parser {
         symbolTables.get(0).insert(entry[0], entry[1], entry[2], entry[3]);
       }
     }
+  }
+
+  /**
+   * Adds the generated VM code to an array list
+   * @param code the line of VM code to be added
+   */
+  private void storeCode(String code){
+    vmCode.add(code);
+  }
+
+  /**
+   * Writes the VM code contained within the vmCode array to a VM file
+   * @param filename The name of the VM file being written to
+   * @throws IOException thrown in the event that the VM file cannot be
+   * created or accessed
+   */
+  private void writeCode(String filename) throws IOException {
+    PrintWriter vmFile = new PrintWriter(new FileWriter(new File(filename +
+            ".vm"), true), true);
+
+    for (String line : vmCode){
+      vmFile.println(line);
+    }
+
+    vmFile.close();
   }
 
 
@@ -832,7 +875,11 @@ public class Parser {
 
       expression();
 
+      //Check whether the value being returned matches the return type of the
+      // subroutine
       if (identifierOperand != null){
+        //Lookup the identifier in the local symbol table first before
+        // checking whether it exists in the global scope
         Symbol value =
                 symbolTables.get(currSymbolTable).getSymbol(identifierOperand);
         if (value == null){
@@ -876,8 +923,16 @@ public class Parser {
 
     Token t = lexer.peekNextToken();
     while (t.getLexeme().equals("&") || t.getLexeme().equals("|")){
-      lexer.getNextToken();
+      t = lexer.getNextToken();
       relationalExpression();
+
+      if (t.getLexeme().equals("&")){
+        storeCode("and");
+      }
+      else {
+        storeCode("or");
+      }
+
       t = lexer.peekNextToken();
     }
   }
@@ -887,8 +942,19 @@ public class Parser {
 
     Token t = lexer.peekNextToken();
     while (t.getLexeme().equals("=") || t.getLexeme().equals("<") || t.getLexeme().equals(">")){
-      lexer.getNextToken();
+      t = lexer.getNextToken();
       arithmeticExpression();
+
+      if (t.getLexeme().equals("=")){
+        storeCode("eq");
+      }
+      else if (t.getLexeme().equals("<")){
+        storeCode("lt");
+      }
+      else {
+        storeCode("gt");
+      }
+
       t = lexer.peekNextToken();
     }
   }
@@ -898,8 +964,16 @@ public class Parser {
 
     Token t = lexer.peekNextToken();
     while (t.getLexeme().equals("+") || t.getLexeme().equals("-")){
-      lexer.getNextToken();
+      t = lexer.getNextToken();
       term();
+
+      if (t.getLexeme().equals("+")){
+        storeCode("add");
+      }
+      else{
+        storeCode("sub");
+      }
+
       t = lexer.peekNextToken();
     }
   }
@@ -909,28 +983,45 @@ public class Parser {
 
     Token t = lexer.peekNextToken();
     while (t.getLexeme().equals("*") || t.getLexeme().equals("/")){
-      lexer.getNextToken();
+      t = lexer.getNextToken();
       factor();
+
+      if (t.getLexeme().equals("*")){
+        storeCode("call Math.multiply 2");
+      }
+      else {
+        storeCode("call Math.divide 2");
+      }
+
       t = lexer.peekNextToken();
     }
   }
 
   private void factor(){
     Token t = lexer.peekNextToken();
+    boolean negative = false;
     if (t.getLexeme().equals("-")){
-      lexer.getNextToken();
+      t = lexer.getNextToken();
+      negative = true;
     }
     else if (t.getLexeme().equals("~")){
-      lexer.getNextToken();
+      t =lexer.getNextToken();
+      storeCode("not");
     }
 
     operand();
+
+    // Turns the last integer constant pushed into a negative value
+    if (negative){
+      storeCode("neg");
+    }
   }
 
   private void operand(){
     Token t = lexer.getNextToken();
     if (t.getType() == Token.TokenTypes.num){
       operandType = "int";
+      storeCode("push constant " + t.getLexeme());
     }
     else if (t.getType() == Token.TokenTypes.id){
       identifierOperand = t.getLexeme();
@@ -977,6 +1068,11 @@ public class Parser {
         }
       }
 
+      if (symbolTables.get(currSymbolTable).lookUp(t.getLexeme())){
+        int offset =
+                symbolTables.get(currSymbolTable).getSymbol(t.getLexeme()).getOffset();
+        storeCode("push static " + offset);
+      }
     }
     else if (t.getLexeme().equals("(")){
       expression();
@@ -995,12 +1091,16 @@ public class Parser {
     }
     else if (t.getLexeme().equals("true")){
       operandType = "boolean";
+      storeCode("push constant 1");
+      storeCode("neg");
     }
     else if (t.getLexeme().equals("false")){
       operandType = "boolean";
+      storeCode("push constant 0");
     }
     else if (t.getType() == Token.TokenTypes.nullReference){
       operandType = "null";
+      storeCode("push constant 0");
     }
     else if (t.getLexeme().equals("this")){
       operandType = className;
