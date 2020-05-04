@@ -99,7 +99,7 @@ public class Parser {
    */
   private void writeCode(String filename) throws IOException {
     PrintWriter vmFile = new PrintWriter(new FileWriter(new File(filename +
-            ".vm"), true), true);
+            ".vm")));
 
     for (String line : vmCode){
       vmFile.println(line);
@@ -634,6 +634,13 @@ public class Parser {
       throw new ParserException("Error on line " + t.getLineNum() + ". " +
               "Expected ; , got " + t.getLexeme() + ".");
     }
+
+    if (lhs.getKind().equals("var")){
+      storeCode("pop local " + lhs.getOffset());
+    }
+    else if (lhs.getKind().equals("field")){
+      storeCode("pop static " + lhs.getOffset());
+    }
   }
 
   private void ifStatement(){
@@ -666,6 +673,7 @@ public class Parser {
               "Expected \")\", got" + t.getLexeme() + ".");
     }
 
+    storeCode("if-goto jump");
     t = lexer.getNextToken();
     if (t.getLexeme().equals("{")){
 
@@ -690,6 +698,7 @@ public class Parser {
               "Expected \"}\", got " + t.getLexeme() + ".");
     }
 
+    storeCode("label jump");
     t = lexer.peekNextToken();
     if (t.getLexeme().equals("else")){
       lexer.getNextToken();
@@ -724,7 +733,7 @@ public class Parser {
   private void whileStatement(){
     Token t = lexer.getNextToken();
     if (t.getLexeme().equals("while")){
-
+      storeCode("label loop");
     }
     else {
       throw new ParserException("Error on line " + t.getLineNum() + ". " +
@@ -751,6 +760,7 @@ public class Parser {
               "Expected \")\", got " + t.getLexeme() + ".");
     }
 
+    storeCode("if-goto end");
     t = lexer.getNextToken();
     if (t.getLexeme().equals("{")){
 
@@ -774,6 +784,9 @@ public class Parser {
       throw new ParserException("Error on line " + t.getLineNum() + ". " +
               "Expected \"}\", got " + t.getLexeme() + ".");
     }
+
+    storeCode("goto loop");
+    storeCode("label end");
   }
 
   private void doStatement(){
@@ -798,8 +811,10 @@ public class Parser {
 
   private void subroutineCall(){
     Token t = lexer.getNextToken();
+    String subroutine = null;
+    int args = 0;
     if (t.getType() == Token.TokenTypes.id){
-
+      subroutine = t.getLexeme();
     }
     else {
       throw new ParserException("Error on line " + t.getLineNum() + ". " +
@@ -812,7 +827,7 @@ public class Parser {
 
       t = lexer.getNextToken();
       if (t.getType() == Token.TokenTypes.id){
-
+        subroutine = subroutine + "." + t.getLexeme();
       }
       else {
         throw new ParserException("Error on line " + t.getLineNum() + ". " +
@@ -822,7 +837,7 @@ public class Parser {
 
     t = lexer.getNextToken();
     if (t.getLexeme().equals("(")){
-      expressionList();
+      args = expressionList();
     }
     else {
       throw new ParserException("Error on line " + t.getLineNum() + ". " +
@@ -837,24 +852,31 @@ public class Parser {
       throw new ParserException("Error on line " + t.getLineNum() + ". " +
               "Expected \")\", got " + t.getLexeme() + ".");
     }
+
+    storeCode("call " + subroutine + " " + args);
   }
 
-  private void expressionList(){
+  private int expressionList(){
     Token t = lexer.peekNextToken();
+    int args = 0;
     if (t.getType() == Token.TokenTypes.num || t.getType() == Token.TokenTypes.id ||
         t.getLexeme().equals("(") || t.getType() == Token.TokenTypes.string ||
         t.getLexeme().equals("true") || t.getLexeme().equals("false") || t.getType() == Token.TokenTypes.nullReference ||
         t.getLexeme().equals("this") || t.getLexeme().equals("-") || t.getLexeme().equals("~")) {
 
       expression();
+      args++;
 
       t = lexer.peekNextToken();
       while (t.getLexeme().equals(",")) {
         lexer.getNextToken();
         expression();
+        args++;
         t = lexer.peekNextToken();
       }
     }
+
+    return args;
   }
 
   private void returnStatement(){
@@ -915,6 +937,16 @@ public class Parser {
     else {
       throw new ParserException("Error on line " + t.getLineNum() + ". " +
               "Expected \";\", got " + t.getLexeme() + ".");
+    }
+
+    //Checks to see if there is any unreachable code after a return statement
+    // by taking advantage of the fact the next token should be a "}"
+    t = lexer.peekNextToken();
+    if (t != null){
+      if (!(t.getLexeme().equals("}"))){
+        throw new ParserException("Error on line " + t.getLineNum() + ". Code" +
+                " after return statement is unreachable.");
+      }
     }
   }
 
@@ -1068,9 +1100,22 @@ public class Parser {
         }
       }
 
-      if (symbolTables.get(currSymbolTable).lookUp(t.getLexeme())){
-        int offset =
-                symbolTables.get(currSymbolTable).getSymbol(t.getLexeme()).getOffset();
+      if (symbolTables.get(currSymbolTable).lookUp(identifierOperand)){
+        Symbol s = symbolTables.get(currSymbolTable).getSymbol(identifierOperand);
+        int offset = s.getOffset();
+        if (s.getKind().equals("argument")){
+          storeCode("push argument " + offset);
+        }
+        else if (s.getKind().equals("var")){
+          storeCode("push local " + offset);
+        }
+        else {
+          storeCode("push static " + offset);
+        }
+      }
+      else if (symbolTables.get(0).lookUp(identifierOperand)){
+        Symbol s = symbolTables.get(0).getSymbol(identifierOperand);
+        int offset = s.getOffset();
         storeCode("push static " + offset);
       }
     }
