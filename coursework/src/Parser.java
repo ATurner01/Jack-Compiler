@@ -18,6 +18,8 @@ public class Parser {
   private String operandType;
   private String identifierOperand = null;
   private int numOfArgs;
+  private int numLocalVars;
+  private boolean isFunctionWritten;
   private String returnType;
   private List<String> vmCode;
 
@@ -419,6 +421,8 @@ public class Parser {
               "Expected \"{\", got " + t.getLexeme() + ".");
     }
 
+    numLocalVars = 0;
+    isFunctionWritten = false;
     t = lexer.peekNextToken();
     while (!(t.getLexeme().equals("}"))){
       statement();
@@ -429,6 +433,17 @@ public class Parser {
 
   private void statement(){
     Token t = lexer.peekNextToken();
+
+    if (t.getLexeme().equals("var")){
+      numLocalVars++;
+    }
+    else {
+      if (!isFunctionWritten) {
+        storeCode("function " + currScope + " " + numLocalVars);
+        isFunctionWritten = true;
+      }
+    }
+
     if (t.getLexeme().equals("var")){
       varDeclareStatement();
     }
@@ -910,7 +925,18 @@ public class Parser {
 
         if (value != null){
           if (value.getType().equals(returnType)){
-
+            if (value.getKind().equals("field")){
+              storeCode("push static " + value.getOffset());
+            }
+            else if (value.getKind().equals("argument")){
+              storeCode("push argument " + value.getOffset());
+            }
+            else if (value.getKind().equals("var")){
+              storeCode("push local " + value.getOffset());
+            }
+            else {
+              System.out.println(identifierOperand);
+            }
           }
           else {
             throw new ParserException("Error on line " + t.getLineNum() + ". " +
@@ -927,7 +953,16 @@ public class Parser {
           throw new ParserException("Error on line " + t.getLineNum() + ". " +
                   "Return type should be " + returnType + ", not " + operandType + ".");
         }
+        if (t.getLexeme().equals("this")){
+          storeCode("push pointer 0" );
+        }
+        else {
+          storeCode("push constant " + t.getLexeme());
+        }
       }
+    }
+    else {
+      storeCode("push constant 0");
     }
 
     t = lexer.getNextToken();
@@ -948,6 +983,8 @@ public class Parser {
                 " after return statement is unreachable.");
       }
     }
+
+    storeCode("return");
   }
 
   private void expression(){
@@ -1057,12 +1094,15 @@ public class Parser {
     }
     else if (t.getType() == Token.TokenTypes.id){
       identifierOperand = t.getLexeme();
+      String functionName = identifierOperand;
+
       t = lexer.peekNextToken();
       if (t.getLexeme().equals(".")){
         lexer.getNextToken();
         t = lexer.peekNextToken();
         if (t.getType() == Token.TokenTypes.id){
           t = lexer.getNextToken();
+          functionName = functionName + "." + t.getLexeme();
         }
         else {
           throw new ParserException("Error on line " + t.getLineNum() + ". " +
@@ -1088,11 +1128,11 @@ public class Parser {
       t = lexer.peekNextToken();
       if (t.getLexeme().equals("(")){
         lexer.getNextToken();
-        expressionList();
+        int args = expressionList();
 
         t = lexer.getNextToken();
         if (t.getLexeme().equals(")")){
-
+          storeCode("call " + functionName + " " + args);
         }
         else {
           throw new ParserException("Error on line " + t.getLineNum() + ". " +
@@ -1109,7 +1149,7 @@ public class Parser {
         else if (s.getKind().equals("var")){
           storeCode("push local " + offset);
         }
-        else {
+        else if (s.getKind().equals("field")){
           storeCode("push static " + offset);
         }
       }
