@@ -434,10 +434,7 @@ public class Parser {
   private void statement(){
     Token t = lexer.peekNextToken();
 
-    if (t.getLexeme().equals("var")){
-      numLocalVars++;
-    }
-    else {
+    if (!(t.getLexeme().equals("var"))) {
       if (!isFunctionWritten) {
         storeCode("function " + currScope + " " + numLocalVars);
         isFunctionWritten = true;
@@ -499,6 +496,7 @@ public class Parser {
       }
       symbolTables.get(currSymbolTable).insert(t.getLexeme(), type,
               "var", className);
+      numLocalVars++;
     }
     else {
       throw new ParserException("Error on line " + t.getLineNum() + ". " +
@@ -520,6 +518,7 @@ public class Parser {
         }
         symbolTables.get(currSymbolTable).insert(t.getLexeme(), type,
                 "var", className);
+        numLocalVars++;
       }
       else {
         throw new ParserException("Error on line "+ t.getLineNum() + ". " +
@@ -655,6 +654,9 @@ public class Parser {
     }
     else if (lhs.getKind().equals("field")){
       storeCode("pop static " + lhs.getOffset());
+    }
+    else if (lhs.getKind().equals("argument")){
+      storeCode("pop argument " + lhs.getOffset());
     }
   }
 
@@ -925,18 +927,7 @@ public class Parser {
 
         if (value != null){
           if (value.getType().equals(returnType)){
-            if (value.getKind().equals("field")){
-              storeCode("push static " + value.getOffset());
-            }
-            else if (value.getKind().equals("argument")){
-              storeCode("push argument " + value.getOffset());
-            }
-            else if (value.getKind().equals("var")){
-              storeCode("push local " + value.getOffset());
-            }
-            else {
-              System.out.println(identifierOperand);
-            }
+
           }
           else {
             throw new ParserException("Error on line " + t.getLineNum() + ". " +
@@ -952,12 +943,6 @@ public class Parser {
         if (!(returnType.equals(operandType))){
           throw new ParserException("Error on line " + t.getLineNum() + ". " +
                   "Return type should be " + returnType + ", not " + operandType + ".");
-        }
-        if (t.getLexeme().equals("this")){
-          storeCode("push pointer 0" );
-        }
-        else {
-          storeCode("push constant " + t.getLexeme());
         }
       }
     }
@@ -1069,20 +1054,25 @@ public class Parser {
   private void factor(){
     Token t = lexer.peekNextToken();
     boolean negative = false;
+    boolean not = false;
     if (t.getLexeme().equals("-")){
       t = lexer.getNextToken();
       negative = true;
     }
     else if (t.getLexeme().equals("~")){
       t =lexer.getNextToken();
-      storeCode("not");
+      not = true;
     }
 
     operand();
 
-    // Turns the last integer constant pushed into a negative value
+    // Turns the last integer constant pushed into a negative value or
+    // applied the not operation to a boolean expression
     if (negative){
       storeCode("neg");
+    }
+    else if (not){
+      storeCode("not");
     }
   }
 
@@ -1133,6 +1123,7 @@ public class Parser {
         t = lexer.getNextToken();
         if (t.getLexeme().equals(")")){
           storeCode("call " + functionName + " " + args);
+          return;
         }
         else {
           throw new ParserException("Error on line " + t.getLineNum() + ". " +
@@ -1189,6 +1180,7 @@ public class Parser {
     }
     else if (t.getLexeme().equals("this")){
       operandType = className;
+      storeCode("push pointer 0");
     }
     else {
       throw new ParserException("Error on line " + t.getLineNum() + ". " +
