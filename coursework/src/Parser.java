@@ -17,7 +17,6 @@ public class Parser {
   private String currScope;
   private String operandType;
   private String identifierOperand = null;
-  private int numOfArgs;
   private int numLocalVars;
   private boolean isFunctionWritten;
   private String returnType;
@@ -361,7 +360,6 @@ public class Parser {
   private void paramList(){
     Token t = lexer.peekNextToken();
     String type;
-    numOfArgs = 0;
     if (t.getType() == Token.TokenTypes.keyword || t.getType() == Token.TokenTypes.id){
       type = type();
 
@@ -382,7 +380,6 @@ public class Parser {
                 "Expected identifier, got " + t.getLexeme() + ".");
       }
 
-      numOfArgs++;
       t = lexer.peekNextToken();
       while (t.getLexeme().equals(",")){
         lexer.getNextToken();
@@ -399,7 +396,6 @@ public class Parser {
           }
           symbolTables.get(currSymbolTable).insert(t.getLexeme(), type,
                   "argument", className);
-          numOfArgs++;
         }
         else {
           throw new ParserException("Error on line " + t.getLineNum() + ". " +
@@ -1102,12 +1098,32 @@ public class Parser {
 
       t = lexer.peekNextToken();
       if (t.getLexeme().equals("[")){
+
+        if (symbolTables.get(currSymbolTable).lookUp(identifierOperand)){
+          Symbol s = symbolTables.get(currSymbolTable).getSymbol(identifierOperand);
+          if (s.getKind().equals("argument")){
+            storeCode("push argument " + s.getOffset());
+          }
+          else if (s.getKind().equals("var")){
+            storeCode("push local " + s.getOffset());
+          }
+        }
+        else if (symbolTables.get(0).lookUp(identifierOperand)){
+          Symbol s = symbolTables.get(0).getSymbol(identifierOperand);
+          storeCode("push static " + s.getOffset());
+        }
+        else {
+          throw new ParserException("Error on line " + t.getLineNum() + ". " +
+                  "Array is not defined.");
+        }
+
         lexer.getNextToken();
         expression();
 
         t = lexer.getNextToken();
         if (t.getLexeme().equals("]")){
-
+          storeCode("add");
+          return;
         }
         else {
           throw new ParserException("Error on line " + t.getLineNum() + ". " +
@@ -1164,6 +1180,9 @@ public class Parser {
     }
     else if (t.getType() == Token.TokenTypes.string || t.getType() == Token.TokenTypes.character){
       operandType = "string";
+      int stringLen = t.getLexeme().length();
+      storeCode("push constant " + stringLen);
+      storeCode("call String.new 1");
     }
     else if (t.getLexeme().equals("true")){
       operandType = "boolean";
