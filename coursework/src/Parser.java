@@ -55,12 +55,6 @@ public class Parser {
       System.out.println("Error. Could not open VM file.");
       e.printStackTrace();
     }
-
-    for (SymbolTable t : symbolTables){
-      System.out.println(t.getScope());
-      t.printTable();
-      System.out.println("");
-    }
   }
 
   /**
@@ -69,7 +63,7 @@ public class Parser {
    * library declarations is missing
    */
   private void initialiseGlobalTable() throws FileNotFoundException{
-    File libs = new File("src/libs.txt");
+    File libs = new File("libs.txt");
     Scanner input = new Scanner(libs);
 
     while(input.hasNextLine()){
@@ -537,6 +531,7 @@ public class Parser {
   private void letStatement(){
     Token t = lexer.getNextToken();
     Symbol lhs;
+    boolean isArray = false;
     if (t.getLexeme().equals("let")){
 
     }
@@ -564,6 +559,18 @@ public class Parser {
 
     t = lexer.peekNextToken();
     if (t.getLexeme().equals("[")){
+      isArray = true;
+
+      if (lhs.getKind().equals("var")){
+        storeCode("push local " + lhs.getOffset());
+      }
+      else if (lhs.getKind().equals("argument")){
+        storeCode("push argument " + lhs.getOffset());
+      }
+      else if (lhs.getKind().equals("field")){
+        storeCode("push static " + lhs.getOffset());
+      }
+
       lexer.getNextToken();
       t = lexer.peekNextToken();
       while (!(t.getLexeme().equals("]"))){
@@ -582,6 +589,8 @@ public class Parser {
         }
         t = lexer.peekNextToken();
       }
+      storeCode("add");
+      storeCode("pop pointer 1");
       lexer.getNextToken();
     }
 
@@ -594,6 +603,7 @@ public class Parser {
               "Expected =, got " + t.getLexeme() + ".");
     }
 
+    identifierOperand = null;
     expression();
 
     //This section implements type checking for let statements
@@ -613,6 +623,8 @@ public class Parser {
 
       }
       else if ((rhs != null) && !(lhs.getType().equals(rhs.getType()))){
+        System.out.println(lhs.toString());
+        System.out.println(rhs.toString());
         throw new ParserException("Error on line " + t.getLineNum() + ". " +
                 "Mismatched types for " + lhs.getType() + " and " + rhs.getType());
       }
@@ -623,7 +635,6 @@ public class Parser {
         }
       }
 
-      identifierOperand = null;
     }
     else {
       if (symbolTables.get(0).lookUp(lhs.getType())){
@@ -645,14 +656,17 @@ public class Parser {
               "Expected ; , got " + t.getLexeme() + ".");
     }
 
-    if (lhs.getKind().equals("var")){
-      storeCode("pop local " + lhs.getOffset());
+    if (isArray){
+      storeCode("pop that 0");
     }
-    else if (lhs.getKind().equals("field")){
-      storeCode("pop static " + lhs.getOffset());
-    }
-    else if (lhs.getKind().equals("argument")){
-      storeCode("pop argument " + lhs.getOffset());
+    else {
+      if (lhs.getKind().equals("var")) {
+        storeCode("pop local " + lhs.getOffset());
+      } else if (lhs.getKind().equals("field")) {
+        storeCode("pop static " + lhs.getOffset());
+      } else if (lhs.getKind().equals("argument")) {
+        storeCode("pop argument " + lhs.getOffset());
+      }
     }
   }
 
@@ -908,6 +922,7 @@ public class Parser {
             t.getType() == Token.TokenTypes.string || t.getType() == Token.TokenTypes.nullReference ||
             t.getType() == Token.TokenTypes.bool) {
 
+      identifierOperand = null;
       expression();
 
       //Check whether the value being returned matches the return type of the
@@ -1181,8 +1196,19 @@ public class Parser {
     else if (t.getType() == Token.TokenTypes.string || t.getType() == Token.TokenTypes.character){
       operandType = "string";
       int stringLen = t.getLexeme().length();
-      storeCode("push constant " + stringLen);
+      //Original lexeme includes the start and end quotation mark of the
+      // string, so the actual string length is length of lexeme - 2
+      storeCode("push constant " + (stringLen-2));
       storeCode("call String.new 1");
+
+      //Start from the first char after the opening quotation mark and end at
+      // the char before the closing quotation mark
+      for (int i = 1 ; i < t.getLexeme().length()-1; ++i){
+        int charValue = (int) t.getLexeme().charAt(i);
+        storeCode("push constant " + charValue);
+        storeCode("call String.appendChar 1");
+      }
+
     }
     else if (t.getLexeme().equals("true")){
       operandType = "boolean";
